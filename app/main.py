@@ -13,7 +13,10 @@ from enum import Enum
 import uvicorn
 import time
 import asyncio
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 request_timestamps = {}
@@ -21,7 +24,7 @@ app = FastAPI(title="Email Classifier API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[os.getenv('FRONTEND_URL')],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
