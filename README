@@ -1,113 +1,67 @@
-Email Classifier API
+ Email Classifier API with WebSocket
 
-Uma API inteligente para classificação automática de emails em categorias produtivas e improdutivas, com geração de respostas automatizadas usando técnicas de Processamento de Linguagem Natural (NLP) e Machine Learning.
-🚀 Funcionalidades
+Uma API moderna para classificação inteligente de emails com suporte a WebSockets para atualizações em tempo real.
+🚀 Funcionalidades Principais
 
-    📨 Classificação de Emails: Identifica se um email é "Produtivo" ou "Improdutivo"
+    🤖 Classificação AI: Identifica emails produtivos vs improdutivos
 
-    🤖 Geração de Respostas: Sugere respostas automáticas contextualizadas
+    💬 Respostas Automáticas: Gera respostas contextualizadas
 
-    📁 Suporte a Múltiplos Formatos: Processa texto direto, arquivos TXT e PDF
+    ⚡ WebSocket Support: Atualizações em tempo real
 
-    ⚡ Processamento Assíncrono: Sistema de jobs com polling adaptativo
+    📁 Multi-format: Suporte a texto, TXT e PDF
 
-    🎯 Modelo de ML Integrado: Usa Logistic Regression com TF-IDF para classificação
+    🎯 Async Processing: Processamento assíncrono com jobs
 
-    🔌 API de IA: Integração com Gemini AI e Hugging Face opcionais
+    🔒 Rate Limiting: Proteção contra abuso
+
+    🌐 CORS Configurado: Pronto para frontend
 
 🛠️ Tecnologias Utilizadas
 
-    Python 3.12 - Linguagem principal
+    Python 3.12 + FastAPI - Backend moderno e rápido
 
-    FastAPI - Framework web moderno e rápido
+    WebSocket - Comunicação em tempo real
 
-    Scikit-learn - Machine Learning para classificação
+    Scikit-learn - Machine Learning integrado
 
-    NLTK - Processamento de Linguagem Natural
+    NLTK - Processamento de linguagem natural
 
-    Google Gemini AI - Geração de respostas inteligentes (opcional)
+    Google Gemini + Hugging Face - APIs de IA opcionais
 
-    Hugging Face - Modelos de NLP (opcional)
+    Uvicorn - Servidor de alta performance
 
-    Uvicorn - Servidor ASGI de alta performance
-
-📦 Instalação
-Pré-requisitos
-
-    Python 3.12 ou superior
-
-    pip (gerenciador de pacotes Python)
-
-Configuração do Ambiente
-
-    Clone o repositório:
-
+📦 Instalação Rápida
 bash
 
+# 1. Clone e entre na pasta
 git clone https://github.com/seu-usuario/email-classifier-backend.git
 cd email-classifier-backend
 
-    Crie um ambiente virtual:
-
-bash
-
+# 2. Ambiente virtual
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 # ou
 venv\Scripts\activate     # Windows
 
-    Instale as dependências:
-
-bash
-
+# 3. Instale dependências
 pip install -r requirements.txt
 
-    Baixe os recursos do NLTK:
-
-bash
-
+# 4. Recursos NLP
 python -c "
 import nltk
 nltk.download('punkt')
-nltk.download('stopwords')
+nltk.download('stopwords') 
 nltk.download('punkt_tab')
-nltk.download('rslp')
-print('✅ Recursos NLTK instalados!')
+print('✅ NLP resources installed!')
 "
 
-    Configure variáveis de ambiente (opcional):
-
-bash
-
+# 5. Configure (opcional)
 cp .env.example .env
-# Edite o .env com suas chaves API
+# Edite .env com suas API keys
 
-🔧 Configuração
-Variáveis de Ambiente
-
-Crie um arquivo .env na raiz do projeto:
-env
-
-# Chave da API Gemini (opcional)
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# Chave da API Hugging Face (opcional)
-HF_API_KEY=your_huggingface_api_key_here
-
-# Configurações do servidor
-HOST=0.0.0.0
-PORT=8000
-DEBUG=True
-
-Chaves API Opcionais
-
-    Gemini AI: Para geração de respostas mais inteligentes
-
-    Hugging Face: Para classificação usando modelos pré-treinados
-
-Nota: O sistema funciona perfeitamente sem essas chaves, usando o modelo ML local.
-🚀 Execução
-Desenvolvimento
+⚡ Como Executar
+Desenvolvimento com Auto-reload
 bash
 
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -123,212 +77,246 @@ bash
 docker build -t email-classifier-api .
 docker run -p 8000:8000 email-classifier-api
 
-📚 API Endpoints
+🔌 WebSocket - Como Usar
+Conexão WebSocket
+javascript
+
+// Exemplo de cliente WebSocket
+const socket = new WebSocket('ws://localhost:8000/ws/job-status/{job_id}');
+
+socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log('Status update:', data);
+};
+
+socket.onopen = () => {
+    console.log('WebSocket connected!');
+};
+
+Exemplo de Fluxo
+
+    Crie um job via POST /classify-email
+
+    Conecte WebSocket com o job_id retornado
+
+    Receba updates em tempo real
+
+    Conexão fecha automaticamente quando o job termina
+
+📡 API Endpoints
 POST /classify-email
 
-Inicia o processamento de um email.
+Cria um novo job de classificação.
 
-Body options:
+Body:
 
-    text: Texto direto do email
+    text: string (opcional) - Texto do email
 
-    file: Arquivo TXT ou PDF (multipart/form-data)
+    file: file (opcional) - Arquivo TXT/PDF
 
 Response:
 json
 
 {
-  "job_id": "uuid-do-job",
+  "job_id": "uuid-string",
   "status": "pending",
-  "message": "Job criado com sucesso"
+  "message": "Job created successfully"
 }
 
 GET /job-status/{job_id}
 
-Verifica o status de um job.
+Verifica status do job (polling tradicional).
 
 Response:
 json
 
 {
-  "job_id": "uuid-do-job",
-  "status": "completed",
-  "progress": 100,
-  "current_step": "Processamento concluído",
-  "message": "Email classificado com sucesso",
-  "result": {
-    "category": "Produtivo",
-    "suggested_response": "Resposta gerada...",
-    "confidence": 0.92,
-    "processed_text": "Texto processado...",
-    "original_length": 250
-  }
+  "job_id": "uuid-string",
+  "status": "processing",
+  "progress": 50,
+  "current_step": "Classifying email...",
+  "result": null,
+  "error": null
 }
 
-GET /health
+WebSocket /ws/job-status/{job_id}
 
-Verifica o status da API.
-
-Response:
-json
-
-{
-  "status": "healthy",
-  "version": "1.0.0",
-  "active_jobs": 3
-}
-
+Conexão em tempo real - Recebe updates automáticos.
 DELETE /job/{job_id}
 
-Remove um job da memória.
-🧪 Exemplos de Uso
-Via cURL
+Remove job da memória.
+GET /health
 
-Classificar texto direto:
+Status da API e jobs ativos.
+🎯 Exemplos de Uso
+cURL - Criar Job
 bash
 
+# Com texto
 curl -X POST "http://localhost:8000/classify-email" \
   -H "Content-Type: application/json" \
-  -d '{"text": "Preciso de ajuda com um erro no sistema urgente"}'
+  -d '{"text": "Preciso de ajuda com erro no sistema"}'
 
-Classificar arquivo:
-bash
-
+# Com arquivo
 curl -X POST "http://localhost:8000/classify-email" \
-  -F "file=@email.pdf" \
-  -H "Content-Type: multipart/form-data"
+  -F "file=@email.pdf"
 
-Verificar status:
-bash
+JavaScript - WebSocket
+javascript
 
-curl "http://localhost:8000/job-status/SEU_JOB_ID_AQUI"
+// Conectar ao WebSocket
+async function connectWebSocket(jobId) {
+    const ws = new WebSocket(`ws://localhost:8000/ws/job-status/${jobId}`);
+    
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        updateUI(data);
+    };
+    
+    ws.onclose = () => {
+        console.log('Connection closed - job completed');
+    };
+}
 
-Via Python
+Python - Cliente Completo
 python
 
 import requests
+import json
+import asyncio
+import websockets
 
-# Classificar email
+# Criar job
 response = requests.post("http://localhost:8000/classify-email", 
-    json={"text": "Olá, preciso de suporte técnico"}
+    json={"text": "Olá, preciso de suporte técnico urgente"}
 )
-
 job_id = response.json()["job_id"]
 
-# Verificar status
-status = requests.get(f"http://localhost:8000/job-status/{job_id}")
-print(status.json())
+# Conectar WebSocket
+async def track_job():
+    async with websockets.connect(f"ws://localhost:8000/ws/job-status/{job_id}") as ws:
+        async for message in ws:
+            data = json.loads(message)
+            print(f"Progress: {data['progress']}% - {data['message']}")
+            
+            if data['status'] == 'completed':
+                print("Resultado:", data['result'])
+                break
+
+asyncio.run(track_job())
+
+⚙️ Configuração
+Variáveis de Ambiente (.env)
+env
+
+FRONTEND_URL=http://localhost:3000
+GEMINI_API_KEY=your_gemini_key_here
+HF_API_KEY=your_huggingface_key_here
+HOST=0.0.0.0
+PORT=8000
+DEBUG=True
+
+Sem Variáveis de Ambiente
+
+O sistema funciona perfeitamente sem APIs externas usando:
+
+    ✅ Modelo Machine Learning local
+
+    ✅ Templates inteligentes de resposta
+
+    ✅ Processamento completo offline
 
 🏗️ Estrutura do Projeto
 text
 
-email-classifier-backend/
-├── app/
-│   ├── main.py                 # Aplicação FastAPI principal
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── schemas.py          # Modelos Pydantic
-│   │   └── ml_model.py         # Modelo de Machine Learning
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── ai_service.py       # Serviço de IA principal
-│   │   ├── classifier.py       # Classificação de emails
-│   │   ├── response_generator.py # Geração de respostas
-│   │   └── email_processor.py  # Processamento de texto
-│   └── utils/
-│       ├── __init__.py
-│       └── logging_utils.py    # Utilitários de logging
+app/
+├── main.py                 # FastAPI app + WebSocket handlers
 ├── models/
-│   └── classifier_model.pkl    # Modelo ML treinado (gerado automaticamente)
-├── requirements.txt            # Dependências do projeto
-├── .env.example               # Exemplo de variáveis de ambiente
-└── README.md                  # Este arquivo
+│   ├── schemas.py          # Pydantic models
+│   └── ml_model.py         # ML model training/prediction
+├── services/
+│   ├── ai_service.py       # AI integration layer
+│   ├── classifier.py       # Email classification
+│   ├── response_generator.py # Response generation
+│   └── email_processor.py  # Text processing
+└── utils/
+    └── logging_utils.py    # Logging configuration
 
-🎯 Modelo de Machine Learning
+🔒 Rate Limiting
 
-O sistema utiliza um modelo Logistic Regression com TF-IDF Vectorizer treinado com exemplos de emails produtivos e improdutivos.
+O sistema inclui proteção automática:
 
-Características:
+    ⏰ 500ms entre requests de status
 
-    ✅ Treinado com 40+ exemplos categorizados
+    📊 Log de tentativas excessivas
 
-    ✅ Validação cruzada integrada
-
-    ✅ Persistência automática (arquivo .pkl)
-
-    ✅ Fallback para análise heurística
-
-🔍 Tipos de Classificação
-📈 Emails Produtivos
-
-    Solicitações de suporte técnico
-
-    Problemas e erros reportados
-
-    Dúvidas sobre o sistema
-
-    Solicitações de status
-
-    Questões financeiras
-
-💬 Emails Improdutivos
-
-    Mensagens de agradecimento
-
-    Felicitações e cumprimentos
-
-    Mensagens sociais
-
-    Feedback positivo
-
-    Comunicações informais
-
-⚡ Performance
-
-    Tempo de resposta: < 2 segundos para emails típicos
-
-    Concorrência: Suporte a múltiplos jobs simultâneos
-
-    Escalabilidade: Arquitetura preparada para horizontal scaling
+    🛡️ Proteção por IP e endpoint
 
 🐛 Solução de Problemas
-Erros Comuns
-
-    CORS Blocked: Verifique se o frontend está na lista de origens permitidas
-
-    NLTK Resources: Execute o download dos recursos do NLTK
-
-    Memory Issues: Jobs antigos são automaticamente limpos
-
-Logs e Debug
-
-Ative o modo debug para logs detalhados:
+Erro de CORS
 bash
 
-export DEBUG=True
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# Verifique se o FRONTEND_URL está correto no .env
+# Ou ajuste no código:
+allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"]
 
-🤝 Contribuição
+WebSocket Não Conecta
+javascript
+
+// Verifique se o backend está rodando
+// E se o job_id existe
+console.log('WebSocket status:', socket.readyState);
+
+Erro de NLP Resources
+bash
+
+python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
+
+📊 Monitoramento
+Logs em Tempo Real
+text
+
+📊 Job a1b2c3d4: processing - Processing email... (30%)
+✅ Job a1b2c3d4 completed successfully!
+⚠️ Rate limit exceeded for 127.0.0.1 on /job-status/...
+
+Health Check
+bash
+
+curl http://localhost:8000/health
+# {"status":"healthy","active_jobs":3,"version":"1.0.0"}
+
+🚀 Deploy em Produção
+1. Traditional Server
+bash
+
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+
+2. Docker
+dockerfile
+
+FROM python:3.12-slim
+COPY . /app
+WORKDIR /app
+RUN pip install -r requirements.txt
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+3. Cloud (AWS/Google Cloud)
+
+    Configure reverse proxy para WebSocket
+
+    Ajuste timeouts para conexões longas
+
+    Configure SSL para WSS (WebSocket Secure)
+
+🤝 Contribuindo
 
     Fork o projeto
 
-    Crie uma branch para sua feature (git checkout -b feature/AmazingFeature)
+    Crie sua feature branch (git checkout -b feature/AmazingFeature)
 
-    Commit suas mudanças (git commit -m 'Add some AmazingFeature')
+    Commit (git commit -m 'Add AmazingFeature')
 
-    Push para a branch (git push origin feature/AmazingFeature)
+    Push (git push origin feature/AmazingFeature)
 
     Abra um Pull Request
-
-📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo LICENSE para detalhes.
-🏆 Reconhecimentos
-
-    FastAPI por fornecer um framework web excepcional
-
-    Scikit-learn por ferramentas incríveis de Machine Learning
-
-    Google Gemini por modelos de IA generativa
-
-    Hugging Face por democratizar o NLP
