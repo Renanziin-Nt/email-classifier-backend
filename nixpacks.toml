@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ['python3', 'python3DistutilsExtra']
+nixPkgs = ['python3', 'python3Full']
 
 [phases.install]
 commands = [
