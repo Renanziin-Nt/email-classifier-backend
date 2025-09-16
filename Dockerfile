@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# instalar dependências do sistema necessárias para numpy, scikit-learn e pdfplumber
+# instalar dependências do sistema necessárias para pdfplumber e amigos
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
@@ -16,18 +16,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev \
     libfreetype6-dev \
     poppler-utils \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# copiar requirements e instalar
-COPY requirements.txt .
+# atualizar pip e instalar numpy / scikit-learn primeiro via wheels oficiais
 RUN pip install --upgrade pip setuptools wheel \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir numpy==1.24.3 scikit-learn==1.3.2
 
-# copiar código do app
+# agora instalar o resto
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
 COPY . .
 
-# expor a porta do FastAPI
 EXPOSE 8000
 
-# usar gunicorn + uvicorn workers no Railway
 CMD ["gunicorn", "app.main:app", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "--workers", "2", "--threads", "8"]
